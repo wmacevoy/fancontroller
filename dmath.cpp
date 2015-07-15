@@ -3,21 +3,26 @@
 
 #include "dmath.h"
 
+// minimum
 double dmin(double a, double b)
 {
   return a<b ? a : b;
 }
 
+// maximum
 double dmax(double a, double b)
 {
   return b<a ? a : b;
 }
 
+// absolute value
 double dabs(double x)
 {
   return x >= 0 ? x : -x;
 }
 
+
+// floor: largest integer <= argument
 double dfloor(double x)
 {
   int64_t y=x;
@@ -25,6 +30,7 @@ double dfloor(double x)
   return y;
 }
 
+// ceiling: smallest integer >= argument
 double dceil(double x)
 {
   int64_t y=x;
@@ -32,16 +38,16 @@ double dceil(double x)
   return y;
 }
 
+// round: nearest integer, rounding up.
 double dround(double x)
 {
   return dfloor(x+0.5);
 }
 
+// constain: y=constrain(x,a,b) constrains x so a <= y <= b
 double dconstrain(double x, double a, double b)
 {
-  if (b < a) {
-    return 0.5*(a+b);
-  } else if (x < a) {
+  if (x < a) {
     return a;
   } else if (b < x) {
     return b;
@@ -50,16 +56,15 @@ double dconstrain(double x, double a, double b)
   }
 }
 
+// map: rescale x range so x0 maps to y0 and x1 maps to y1
 double dmap(double x, double x0, double x1, double y0, double y1)
 {
   double c1=x-x0;
   double c0=x1-x;
-  double c=c0+c1;
-  c1=c1/c;
-  c0=c0/c;
-  return c0*y0+c1*y1;
+  return (c0*y0+c1*y1)/(c0+c1);
 }
 
+// map then constrain results to range of y0 and y1
 double dconstrainmap(double x, double x0, double x1, double y0, double y1)
 {
   double y;
