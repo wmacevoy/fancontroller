@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "GetTemp.h"
+#include "Temp.h"
 // From arduino playground
 
 // Internal Temperature Sensor
@@ -8,7 +8,7 @@
 // 
 // April 2012, Arduino 1.0
 
-double GetTemp()
+double TempReadC()
 {
   unsigned int wADC;
   double t;
