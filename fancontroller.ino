@@ -43,6 +43,7 @@ double duty;
 
 void setup()
 {
+  FanSetup();
   temp = TempReadC();
   duty = dconstrainmap(temp,TEMP_MIN,TEMP_MAX,DUTY_MIN,DUTY_MAX);
 
@@ -81,7 +82,7 @@ void loop()
 
   duty = dconstrain(duty,duty0,duty1);
 
-  UpdateFan(duty);
+  FanUpdate(duty);
 
   if (BAUD > 0) {
     Serial.print("loop:");
