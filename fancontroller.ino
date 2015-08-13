@@ -30,18 +30,37 @@
 //     |                       temp
 //     v
 
+#include <AStar32U4Prime.h>
+
+
+
 #include "dmath.h"
 #include "Temp.h"
 #include "Fan.h"
 
+AStar32U4PrimeLCD lcd;
+
 
 const unsigned long BAUD = 9600L;
-const double TEMP_MIN =  25.0;
-const double TEMP_MAX = 30.0;
-const double TEMP_DELTA = 5.0;
+const double TEMP_MIN =  28.0;
+const double TEMP_MAX =  32.0;
+const double TEMP_DELTA = 4.0;
 const double FAN_MIN = 0.0;
 const double FAN_MAX = 1.0;
 const bool   SCHMITT = dabs(TEMP_MIN+TEMP_DELTA-TEMP_MAX)<1e-6;
+
+void LCDSetup()
+{
+  lcd.clear();
+}
+
+void LCDLoop()
+{
+  lcd.clear();
+  lcd.print(temp); lcd.print("C");
+  lcd.gotoXY(0,1);
+  lcd.print(fan*100.0); lcd.print("%");
+}
 
 void SerialSetup()
 {
@@ -93,6 +112,7 @@ void setup()
   if (BAUD > 0) {
     SerialSetup();
   }
+  LCDSetup();
 }
 
 void SchmittLoop()
@@ -143,5 +163,6 @@ void loop()
   if (BAUD > 0) {
     SerialLoop();
   }
+  LCDLoop();
   delay(1000);
 }
