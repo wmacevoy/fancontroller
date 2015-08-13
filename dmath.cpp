@@ -6,13 +6,13 @@
 // minimum
 double dmin(double a, double b)
 {
-  return a<b ? a : b;
+  return a<b?a:b;
 }
 
 // maximum
 double dmax(double a, double b)
 {
-  return b<a ? a : b;
+  return b<a?a:b;
 }
 
 // absolute value
@@ -20,7 +20,6 @@ double dabs(double x)
 {
   return x >= 0 ? x : -x;
 }
-
 
 // floor: largest integer <= argument
 double dfloor(double x)

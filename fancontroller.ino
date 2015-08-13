@@ -8,6 +8,9 @@
 //     loop  - duty is shifted down/up on the left/right
 //             side just enough to stay in the rombus.
 //     
+//     if the romubus is a rectangle, then this is a
+//     degenerate case called a schmitt trigger.
+//     
 //
 //     ^ duty
 //     | 
@@ -31,23 +34,17 @@
 #include "Temp.h"
 #include "Fan.h"
 
-const double TEMP_MIN =  15.0;
-const double TEMP_MAX = 25.0;
-const double TEMP_DELTA = 3.0;
-const double DUTY_MIN = 0.0;
-const double DUTY_MAX = 1.0;
+
 const unsigned long BAUD = 9600L;
+const double TEMP_MIN =  25.0;
+const double TEMP_MAX = 30.0;
+const double TEMP_DELTA = 5.0;
+const double FAN_MIN = 0.0;
+const double FAN_MAX = 1.0;
+const bool   SCHMITT = dabs(TEMP_MIN+TEMP_DELTA-TEMP_MAX)<1e-6;
 
-double temp;
-double duty;
-
-void setup()
+void SerialSetup()
 {
-  FanSetup();
-  temp = TempReadC();
-  duty = dconstrainmap(temp,TEMP_MIN,TEMP_MAX,DUTY_MIN,DUTY_MAX);
-
-  if (BAUD > 0) {
     Serial.begin(BAUD);
     Serial.print("setup:");
     Serial.print(" temp MIN/MAX/DELTA/value="); 
@@ -59,42 +56,92 @@ void setup()
     Serial.print("/");
     Serial.print(temp,1);
     Serial.print(" delta MIN/MAX/value=");
-    Serial.println(DUTY_MIN,2);
+    Serial.println(FAN_MIN,2);
     Serial.print("/");
-    Serial.println(DUTY_MAX,2);
+    Serial.println(FAN_MAX,2);
     Serial.print("/");
-    Serial.print(duty,2);
-    Serial.println();
+    Serial.print(fan,2);
+    Serial.println();  
+}
+
+void SchmittSetup()
+{
+  if (temp < (TEMP_MIN + TEMP_MAX) / 2.0) {
+    fan = FAN_MIN;
+  } else {
+    fan = FAN_MAX;
   }
+}
+
+void HisteresisSetup()
+{
+    fan = dconstrainmap(temp,TEMP_MIN,TEMP_MAX,FAN_MIN,FAN_MAX);
+}
+
+
+void setup()
+{
+  FanSetup();
+  TempSetup();
+
+  if (SCHMITT) {
+    SchmittSetup();
+  } else {
+    HisteresisSetup();
+  }
+
+  if (BAUD > 0) {
+    SerialSetup();
+  }
+}
+
+void SchmittLoop()
+{
+   if (fan == FAN_MAX) {
+     if (temp <= TEMP_MIN) {
+       fan = FAN_MIN;
+     }
+   } else {
+     if (temp >= TEMP_MAX) {
+       fan = FAN_MAX;      
+     }
+   }  
+}
+
+void HysteresisLoop()
+{
+  double fan0 = dconstrainmap(temp,
+			       TEMP_MIN,TEMP_MAX-TEMP_DELTA,
+			       FAN_MIN,FAN_MAX);
+  
+  double fan1 = dconstrainmap(temp,
+			       TEMP_MIN+TEMP_DELTA,TEMP_MAX,
+			       FAN_MIN,FAN_MAX);
+  fan = dconstrain(fan,fan0,fan1);
+}
+
+void SerialLoop()
+{
+  Serial.print("loop:");
+  Serial.print(" temp="); Serial.print(temp);
+  Serial.print(" fan=");  Serial.print(fan);
+  Serial.println();
 }
 
 void loop()
 {
-  temp = TempReadC();
+  TempUpdate();
 
-  double duty0 = dconstrainmap(temp,
-			       TEMP_MIN,TEMP_MAX-TEMP_DELTA,
-			       DUTY_MIN,DUTY_MAX);
-
-  double duty1 = dconstrainmap(temp,
-			       TEMP_MIN+TEMP_DELTA,TEMP_MAX,
-			       DUTY_MIN,DUTY_MAX);
-
-  duty = dconstrain(duty,duty0,duty1);
-
-  FanUpdate(duty);
-
-  if (BAUD > 0) {
-    Serial.print("loop:");
-    Serial.print(" temp="); Serial.print(temp);
-    Serial.print(" duty min/max/value="); 
-    Serial.print(duty0);
-    Serial.print("/");
-    Serial.print(duty1);
-    Serial.print("/");
-    Serial.print(duty);
-    Serial.println();
+  if (SCHMITT) {
+    SchmittLoop();
+  } else {
+    HysteresisLoop();
   }
 
+  FanUpdate();
+
+  if (BAUD > 0) {
+    SerialLoop();
+  }
   delay(1000);
 }

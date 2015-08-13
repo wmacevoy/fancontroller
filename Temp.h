@@ -1,3 +1,6 @@
 #pragma once
 
-double TempReadC();
+extern double temp;
+
+void TempSetup();
+void TempUpdate();

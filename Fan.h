@@ -1,4 +1,5 @@
 #pragma once
 
+extern double fan;
 void FanSetup();
-void FanUpdate(double duty);
+void FanUpdate();
