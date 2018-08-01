@@ -1,11 +1,12 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <AStar32U4.h>
 
 #include "Temp.h"
 #include "Config.h"
 
 Config config;
-const uint8_t oneWireBus = 4;
+const uint8_t oneWireBus = 2;
 const uint8_t resolution = 12;
 
 Stream &out = Serial;
@@ -14,6 +15,8 @@ const long baud = 115200L;
 Temp temp(config,oneWireBus,resolution);
 
 uint32_t timeout = 0;
+
+AStar32U4LCD lcd;
 
 void setup() {
      Serial.begin(baud);
@@ -28,5 +31,8 @@ void loop() {
     out.print(" ");
     out.print(temp.current());
     out.println();
+    lcd.clear();
+    lcd.gotoXY(0,1);
+    lcd.print(temp);
   }
 }

@@ -13,7 +13,7 @@ Temp::Temp(Config &_config, uint8_t _oneWireBus, uint8_t _resolution)
   resolution(_resolution), 
   delayInMillis(750 / (1 << (12 - resolution))) 
 {
-  lastTemperature=0;
+  lastTemperatureRaw=DEVICE_DISCONNECTED_RAW;
   lastReading = -1000000000L; // yes int to unsigned
   timeout = 0;
   state = 0;
@@ -40,9 +40,9 @@ void Temp::loop() {
     } else {
       state = 0;
       //      double value = sensors.getTempCByIndex(0);
-      double value = sensors.getTempC(address);
-      if (value == DEVICE_DISCONNECTED_C) return;
-      lastTemperature = value;
+      double value = sensors.getTemp(address);
+      if (value == DEVICE_DISCONNECTED_RAW) return;
+      lastTemperatureRaw = value;
       lastReading = millis();
       assertTrue(sensors.requestTemperaturesByAddress(address));
       state = 1;
@@ -51,27 +51,17 @@ void Temp::loop() {
 }
 
 size_t Temp::printTo(Print &p) const {
+  p.print(current());
+  p.print(config.unit);
   if (!valid()) {
-    p.print("NONE ");
-    p.print(config.unit);
-    return;
+    p.print("?");
   }
-  if (config.unit == 'C') {
-    p.print(lastTemperature);
-    p.print("C");
-  } else {
-    double f = 1.8*lastTemperature*1.8+32;
-    p.print(f);
-    p.print("F");
-  }
-  
-
 }
 
 double Temp::current() const {
   if (valid()) {
-    return lastTemperature;
+    return config.unit == 'C' ? sensors.rawToCelsius(lastTemperatureRaw) : sensors.rawToFahrenheit(lastTemperatureRaw);
   } else {
-    return 100.0;
+    return config.unit == 'C' ? 100.0 : 212.0;
   }
 }
