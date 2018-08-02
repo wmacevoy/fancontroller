@@ -36,7 +36,7 @@ void FanSpeed::rise() {
 
 double FanSpeed::current() const {
   // 2 pulses per revolution
-  return state == 3 ? 500000.0/interval : 0;
+  return state == 3 && (int32_t(micros() - last) < 500000L) ? 500000.0/interval : 0;
 }
 
 size_t FanSpeed::printTo(Print& p) const {
