@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "Temp.h"
 #include "FanSpeed.h"
+#include "FanPower.h"
 
 Config config;
 const uint8_t oneWireBus = 12; // pin number
@@ -22,18 +23,25 @@ AStar32U4LCD lcd;
 const uint8_t fanSpeedPin = 2;
 FanSpeed fanSpeed(fanSpeedPin);
 
+const uint8_t fanPowerPin = 13;
+FanPower fanPower(fanPowerPin);
+
 void setup() {
      Serial.begin(baud);
      while (!Serial) ; 
      fanSpeed.setup();
      fanSpeed.enable();
+     fanPower.setup();
 }
 
 void loop() {
   temp.loop();
+  fanPower.set(255*(1+sin(millis()/(2*M_PI*30000.0)))/2.0);
   if (int32_t(millis()-timeout) > 0) {
     timeout += 1000;
     out.print(fanSpeed);
+    out.print(" ");
+    out.print(fanPower);
     out.print(" ");
     out.print(temp);
     out.println();

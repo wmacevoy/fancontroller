@@ -4,7 +4,7 @@
 static FanSpeed *me = 0;
 
 void FanControlInterrupt() {
-  me->rise();
+  me->isr();
 }
 
 FanSpeed::FanSpeed(uint8_t _pin) : pin(_pin) 
@@ -13,7 +13,7 @@ FanSpeed::FanSpeed(uint8_t _pin) : pin(_pin)
 void FanSpeed::setup() {
   me = this;
   pinMode(pin,INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(pin), FanControlInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(pin), FanControlInterrupt, CHANGE);
   state = 0;
 }
 
@@ -26,17 +26,23 @@ void FanSpeed::disable() {
   state = 0;
 }
 
-void FanSpeed::rise() {
+void FanSpeed::isr() {
   switch(state) {
   case 0: return;
   case 1: last = micros(); state = 2; return;
-  default: uint32_t now = micros(); interval = now - last; last=now; state = 3; return;
+  default: 
+    uint32_t now = micros(); 
+    uint32_t delta  = now - last;
+    if (delta > 10000L) interval = delta;
+    last=now; 
+    state = 3; 
+    return;
   }
 }
 
 double FanSpeed::current() const {
-  // 2 pulses per revolution
-  return state == 3 && (int32_t(micros() - last) < 500000L) ? 500000.0/interval : 0;
+  // 4 pulses per revolution
+  return state == 3 && (int32_t(micros() - last) < 250000L) ? 250000.0/interval : 0;
 }
 
 size_t FanSpeed::printTo(Print& p) const {

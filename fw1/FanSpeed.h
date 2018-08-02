@@ -12,7 +12,7 @@ class FanSpeed : public Printable {
  public: void setup();
  public: void enable();
  public: void disable();
- private: void rise();
+ private: void isr();
  public: double current() const;
  public: size_t printTo(Print& p) const;
  public: bool valid() const;
