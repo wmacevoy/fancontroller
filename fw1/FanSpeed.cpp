@@ -14,35 +14,38 @@ void FanSpeed::setup() {
   me = this;
   pinMode(pin,INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(pin), FanControlInterrupt, CHANGE);
-  state = 0;
-}
-
-void FanSpeed::enable() {
-  state = 1;
-  me = this;
-}
-
-void FanSpeed::disable() {
-  state = 0;
+  last=last0=last1=last2=0;
+  found=found0=found1=found2=false;
 }
 
 void FanSpeed::isr() {
-  switch(state) {
-  case 0: return;
-  case 1: last = micros(); state = 2; return;
-  default: 
-    uint32_t now = micros(); 
-    uint32_t delta  = now - last;
-    if (delta > 10000L) interval = delta;
-    last=now; 
-    state = 3; 
+  bool on = digitalRead(pin);
+
+  if (on) {
+    last = micros();
+    found = true;
     return;
+  } else if (found) {
+    uint32_t now = micros(); 
+    if (int32_t(micros() - last) > 10000L) {
+      found2 = found1;
+      last2 = last1;
+      found1 = found0;
+      last1 = last0;
+      found0 = true;
+      last0 = last;
+    }
   }
 }
 
 double FanSpeed::current() const {
-  // 4 pulses per revolution
-  return state == 3 && (int32_t(micros() - last) < 250000L) ? 250000.0/interval : 0;
+  if (found2) {
+    uint32_t delta = last0 - last2;
+    if (delta > 10000L && delta < 1000000L) {
+      return 1000000.0 / delta;
+    }
+  }
+  return 0;
 }
 
 size_t FanSpeed::printTo(Print& p) const {
@@ -54,6 +57,6 @@ size_t FanSpeed::printTo(Print& p) const {
 }
 
 bool FanSpeed::valid() const {
-  return state == 3;
+  return found2;
 }
 

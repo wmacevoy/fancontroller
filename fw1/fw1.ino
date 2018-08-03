@@ -2,9 +2,9 @@
 #include <DallasTemperature.h>
 #include <AStar32U4.h>
 
-#define USE_CONFIG 0
-#define USE_TEMP   0
-#define USE_FAN_SPEED 0
+#define USE_CONFIG 1
+#define USE_TEMP   1
+#define USE_FAN_SPEED 1
 #define USE_FAN_POWER 1
 #define USE_LCD 0
 
@@ -61,7 +61,6 @@ void setup() {
 
 #if USE_FAN_SPEED
      fanSpeed.setup();
-     fanSpeed.enable();
 #endif
 
 #if USE_FAN_POWER
@@ -75,7 +74,7 @@ void loop() {
 #endif
 
 #if USE_FAN_POWER
-  fanPower.set(255*(1+sin(millis()/(2*M_PI*3000.0)))/2.0);
+  fanPower.set(1); // 255*(1+sin(millis()/(2*M_PI*5000.0)))/2.0);
 #endif
 
   if (int32_t(millis()-timeout) > 0) {

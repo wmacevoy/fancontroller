@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "FanPower.h"
 
+#define USE_HIGH_FREQUENCY 1
+
 // http://r6500.blogspot.com/2014/12/fast-pwm-on-arduino-leonardo.html
 
 /**********************************************************
@@ -180,15 +182,18 @@ FanPower::FanPower(uint8_t _pin) : pin(_pin)
 
 void FanPower::setup() {
   pinMode(pin,OUTPUT);
-  if (pin == 13) {
-    pwm613configure(PWM187k);
+  if (USE_HIGH_FREQUENCY && pin == 13) {
+    //    pwm613configure(PWM187k);
+    pwm613configure(PWM94k);
+    // pwm613configure(PWM12k); // squeal
+    
   }
   set(0);
 }
 
 void FanPower::set(uint8_t _level) {
   level = _level;
-  if (pin == 13) {
+  if (USE_HIGH_FREQUENCY && pin == 13) {
     pwmSet13(level);
   } else {
     analogWrite(pin,level);
@@ -202,6 +207,10 @@ uint8_t FanPower::get() const {
 size_t FanPower::printTo(Print& p) const {
   size_t sz = 0;
   sz += p.print(level);
-  sz += p.print("P");
+  if (USE_HIGH_FREQUENCY && pin == 13) {
+    sz += p.print("!");
+  } else {
+    sz += p.print("p");
+  }
   return sz;
 }
