@@ -30,16 +30,20 @@
 //     |                       temp
 //     v
 
-#include <AStar32U4Prime.h>
+#include <ArduinoUnit.h>
 
+// add BSP to ide: https://www.pololu.com/docs/0J61/6.2
+// & add this library to IDE 
+#include <AStar32U4.h>
 
+#include "Config.h"
 
 #include "dmath.h"
 #include "Temp.h"
 #include "Fan.h"
 
-AStar32U4PrimeLCD lcd;
-
+AStar32U4LCD lcd;
+Temp temp;
 
 const unsigned long BAUD = 9600L;
 const double TEMP_MIN =  28.0;
@@ -57,7 +61,6 @@ void LCDSetup()
 void LCDLoop()
 {
   lcd.clear();
-  lcd.print(temp); lcd.print("C");
   lcd.gotoXY(0,1);
   lcd.print(fan*100.0); lcd.print("%");
 }
@@ -97,6 +100,7 @@ void HisteresisSetup()
     fan = dconstrainmap(temp,TEMP_MIN,TEMP_MAX,FAN_MIN,FAN_MAX);
 }
 
+Config config;
 
 void setup()
 {
@@ -113,6 +117,8 @@ void setup()
     SerialSetup();
   }
   LCDSetup();
+
+  assertTrue(config.load(), "config failed.");
 }
 
 void SchmittLoop()
@@ -165,4 +171,7 @@ void loop()
   }
   LCDLoop();
   delay(1000);
+
+  Test::run();
+
 }
